@@ -1,0 +1,73 @@
+{
+  "banners": [
+    {
+      "id": "campaign-001",
+      "name": "Sample Campaign",
+      "sizes": [
+        {
+          "width": 300,
+          "height": 250,
+          "id": "medium-rectangle"
+        },
+        {
+          "width": 728,
+          "height": 90,
+          "id": "leaderboard"
+        },
+        {
+          "width": 160,
+          "height": 600,
+          "id": "wide-skyscraper"
+        },
+        {
+          "width": 300,
+          "height": 600,
+          "id": "half-page"
+        },
+        {
+          "width": 320,
+          "height": 50,
+          "id": "mobile-banner"
+        }
+      ],
+      "content": {
+        "eyebrow": "New Product Launch",
+        "headline": "Experience the Future",
+        "subhead": "Innovation meets design in our latest collection",
+        "cta": "Shop Now"
+      },
+      "assets": {},
+      "clickthrough": "https://example.com/campaign",
+      "animation": {
+        "duration": 3000,
+        "loop": false,
+        "timeline": [
+          {
+            "element": "eyebrow",
+            "delay": 0,
+            "duration": 500,
+            "effect": "fadeIn"
+          },
+          {
+            "element": "headline",
+            "delay": 300,
+            "duration": 600,
+            "effect": "fadeInUp"
+          },
+          {
+            "element": "subhead",
+            "delay": 600,
+            "duration": 600,
+            "effect": "fadeInUp"
+          },
+          {
+            "element": "cta-button",
+            "delay": 900,
+            "duration": 500,
+            "effect": "fadeIn"
+          }
+        ]
+      }
+    }
+  ]
+}

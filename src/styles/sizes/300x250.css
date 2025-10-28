@@ -1,0 +1,37 @@
+/* 300x250 Medium Rectangle specific styles */
+
+.banner.size-300x250 {
+  width: 300px;
+  height: 250px;
+}
+
+.banner.size-300x250 .banner-container {
+  padding: 16px;
+}
+
+.banner.size-300x250 .banner-logo {
+  top: 12px;
+  left: 12px;
+  max-width: 60px;
+}
+
+.banner.size-300x250 .eyebrow {
+  font-size: 9px;
+  margin-bottom: 6px;
+}
+
+.banner.size-300x250 .headline {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.banner.size-300x250 .subhead {
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.banner.size-300x250 .cta-button {
+  padding: 10px 20px;
+  font-size: 13px;
+  margin-top: 0;
+}

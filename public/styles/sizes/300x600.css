@@ -1,0 +1,45 @@
+/* 300x600 Half Page specific styles */
+
+.banner.size-300x600 {
+  width: 300px;
+  height: 600px;
+}
+
+.banner.size-300x600 .banner-container {
+  padding: 20px;
+}
+
+.banner.size-300x600 .banner-logo {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 120px;
+}
+
+.banner.size-300x600 .banner-content {
+  justify-content: center;
+  text-align: center;
+  margin-top: 100px;
+}
+
+.banner.size-300x600 .eyebrow {
+  font-size: 10px;
+  margin-bottom: 12px;
+}
+
+.banner.size-300x600 .headline {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.banner.size-300x600 .subhead {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.banner.size-300x600 .cta-button {
+  padding: 12px 24px;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 0;
+}

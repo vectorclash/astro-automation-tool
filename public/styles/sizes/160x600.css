@@ -1,0 +1,46 @@
+/* 160x600 Wide Skyscraper specific styles */
+
+.banner.size-160x600 {
+  width: 160px;
+  height: 600px;
+}
+
+.banner.size-160x600 .banner-container {
+  padding: 16px 12px;
+}
+
+.banner.size-160x600 .banner-logo {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 100px;
+}
+
+.banner.size-160x600 .banner-content {
+  justify-content: center;
+  text-align: center;
+  margin-top: 80px;
+}
+
+.banner.size-160x600 .eyebrow {
+  font-size: 8px;
+  margin-bottom: 8px;
+}
+
+.banner.size-160x600 .headline {
+  font-size: 22px;
+  margin-bottom: 10px;
+  line-height: 1.1;
+}
+
+.banner.size-160x600 .subhead {
+  font-size: 11px;
+  margin-bottom: 20px;
+}
+
+.banner.size-160x600 .cta-button {
+  padding: 10px 16px;
+  font-size: 12px;
+  width: 100%;
+  margin-top: 0;
+}

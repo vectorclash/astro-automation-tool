@@ -1,0 +1,118 @@
+---
+import bannerData from '../../../data/banners.json';
+import type { BannerData } from '../../../types/banner';
+import fs from 'fs';
+import path from 'path';
+
+const data = bannerData as BannerData;
+
+export async function getStaticPaths() {
+  const data = bannerData as BannerData;
+
+  return data.banners.flatMap(banner =>
+    banner.sizes.map(size => ({
+      params: {
+        bannerId: banner.id,
+        sizeId: size.id
+      },
+      props: { banner, size }
+    }))
+  );
+}
+
+const { bannerId, sizeId } = Astro.params;
+const { banner, size } = Astro.props;
+
+// Read CSS files and inline them
+const baseCssPath = path.join(process.cwd(), 'src/styles/banner-base.css');
+const sizeCssPath = path.join(process.cwd(), `src/styles/sizes/${size.width}x${size.height}.css`);
+const baseCss = fs.readFileSync(baseCssPath, 'utf-8');
+const sizeCss = fs.readFileSync(sizeCssPath, 'utf-8');
+
+// Read GSAP library
+const gsapPath = path.join(process.cwd(), 'node_modules/gsap/dist/gsap.min.js');
+const gsapCode = fs.readFileSync(gsapPath, 'utf-8');
+
+// Read our custom GSAP animation code
+const animationPath = path.join(process.cwd(), 'src/scripts/gsap-banner-animation.js');
+let animationCode = fs.readFileSync(animationPath, 'utf-8');
+// Remove ES6 imports/exports for inline use
+animationCode = animationCode.replace(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?\s*/g, '');
+animationCode = animationCode.replace(/export\s+/g, '');
+
+const sizeClass = `size-${size.width}x${size.height}`;
+const bannerElementId = `banner-${banner.id}-${size.id}`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="ad.size" content={`width=${size.width},height=${size.height}`} />
+    <title>{banner.name} - {size.width}x{size.height}</title>
+    <style set:html={baseCss} />
+    <style set:html={sizeCss} />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .banner-link {
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id={bannerElementId} class={`banner ${sizeClass}`} data-banner-id={banner.id} data-size-id={size.id}>
+      <a href={banner.clickthrough} target="_blank" rel="noopener noreferrer" class="banner-link">
+        <div class="banner-container">
+          <div class="banner-content">
+            {(size.id === 'leaderboard' || size.id === 'mobile-banner') ? (
+              <>
+                <div class="text-group">
+                  {banner.content.eyebrow && size.id !== 'mobile-banner' && (
+                    <div class="eyebrow">{banner.content.eyebrow}</div>
+                  )}
+                  <div class="headline">{banner.content.headline}</div>
+                  {size.id !== 'mobile-banner' && (
+                    <div class="subhead">{banner.content.subhead}</div>
+                  )}
+                </div>
+                <div class="cta-button">{banner.content.cta}</div>
+              </>
+            ) : (
+              <>
+                {banner.content.eyebrow && (
+                  <div class="eyebrow">{banner.content.eyebrow}</div>
+                )}
+                <div class="headline">{banner.content.headline}</div>
+                <div class="subhead">{banner.content.subhead}</div>
+                <div class="cta-button">{banner.content.cta}</div>
+              </>
+            )}
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <script set:html={gsapCode}></script>
+    <script set:html={animationCode}></script>
+    <script define:vars={{ animation: banner.animation, bannerElementId, width: size.width, height: size.height, sizeId: size.id }}>
+      (function() {
+        // Initialize GSAP animation with config
+        initGSAPBannerAnimation({
+          containerId: bannerElementId,
+          animation: animation,
+          sizeId: sizeId,
+          width: width,
+          height: height
+        });
+      })();
+    </script>
+  </body>
+</html>

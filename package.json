@@ -1,0 +1,20 @@
+{
+  "name": "astro-automation-tool",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/post-build-cleanup.js",
+    "preview": "astro preview",
+    "package": "npm run build && node scripts/package-banners.js",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.15.2",
+    "gsap": "^3.13.0",
+    "jsdom": "^27.0.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

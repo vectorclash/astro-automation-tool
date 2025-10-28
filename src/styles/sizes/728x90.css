@@ -1,0 +1,57 @@
+/* 728x90 Leaderboard specific styles */
+
+.banner.size-728x90 {
+  width: 728px;
+  height: 90px;
+}
+
+.banner.size-728x90 .banner-container {
+  padding: 12px 20px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.banner.size-728x90 .banner-logo {
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  max-width: 70px;
+}
+
+.banner.size-728x90 .banner-content {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  margin-left: 90px;
+}
+
+.banner.size-728x90 .eyebrow {
+  font-size: 8px;
+  margin-bottom: 2px;
+}
+
+.banner.size-728x90 .headline {
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+.banner.size-728x90 .subhead {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.banner.size-728x90 .cta-button {
+  padding: 10px 20px;
+  font-size: 13px;
+  white-space: nowrap;
+  margin-left: 24px;
+  margin-top: 0;
+  align-self: center;
+}
+
+.banner.size-728x90 .text-group {
+  display: flex;
+  flex-direction: column;
+}
