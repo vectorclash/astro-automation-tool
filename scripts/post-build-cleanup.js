@@ -7,7 +7,7 @@ import prettier from 'prettier';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.join(__dirname, '..');
-const DIST_DIR = path.join(ROOT_DIR, 'dist/banner');
+const BANNERS_DIR = path.join(ROOT_DIR, 'banners');
 
 async function cleanHTMLFile(filePath) {
   console.log(`\nCleaning: ${path.basename(filePath)}`);
@@ -29,7 +29,10 @@ async function cleanHTMLFile(filePath) {
 
   // Parse the malformed content to extract body
   const dom = new JSDOM(afterHtml);
-  const bodyContent = dom.window.document.body.innerHTML;
+  const bodyElement = dom.window.document.body;
+
+  // Get all content from body including script tags
+  const bodyContent = bodyElement.innerHTML;
 
   // Find where </head> ends in the main HTML
   const headEndMatch = mainHtml.match(/(<\/head>)/i);
@@ -155,10 +158,12 @@ async function main() {
   console.log('🧹 Post-Build HTML Cleanup\n');
 
   try {
-    const htmlFiles = await findHTMLFiles(DIST_DIR);
-    console.log(`Found ${htmlFiles.length} HTML file(s) to clean`);
+    const htmlFiles = await findHTMLFiles(BANNERS_DIR);
+    // Filter to only clean banner HTML files, not the index
+    const bannerFiles = htmlFiles.filter(f => !f.endsWith('banners/index.html'));
+    console.log(`Found ${bannerFiles.length} banner HTML file(s) to clean`);
 
-    for (const file of htmlFiles) {
+    for (const file of bannerFiles) {
       await cleanHTMLFile(file);
     }
 

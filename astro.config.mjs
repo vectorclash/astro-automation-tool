@@ -3,8 +3,9 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
+  outDir: './banners',
   build: {
-    format: 'file',
+    format: 'directory',
     inlineStylesheets: 'always'
   },
   compressHTML: false

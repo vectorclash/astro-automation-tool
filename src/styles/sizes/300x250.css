@@ -35,3 +35,7 @@
   font-size: 13px;
   margin-top: 0;
 }
+
+.banner.size-300x250 .embrace {
+  bottom: 20px;
+}

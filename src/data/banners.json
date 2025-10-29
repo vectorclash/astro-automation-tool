@@ -36,38 +36,10 @@
         "subhead": "with eligible trade-in",
         "cta": "Shop now"
       },
-      "assets": {},
-      "clickthrough": "https://example.com/campaign",
-      "animation": {
-        "duration": 3000,
-        "loop": false,
-        "timeline": [
-          {
-            "element": "eyebrow",
-            "delay": 0,
-            "duration": 500,
-            "effect": "fadeIn"
-          },
-          {
-            "element": "headline",
-            "delay": 300,
-            "duration": 600,
-            "effect": "fadeInUp"
-          },
-          {
-            "element": "subhead",
-            "delay": 600,
-            "duration": 600,
-            "effect": "fadeInUp"
-          },
-          {
-            "element": "cta-button",
-            "delay": 900,
-            "duration": 500,
-            "effect": "fadeIn"
-          }
-        ]
-      }
+      "assets": {
+        "embrace": "/images/embrace.png"
+      },
+      "clickthrough": "https://www.att.com"
     }
   ]
 }

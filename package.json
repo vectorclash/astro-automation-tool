@@ -3,18 +3,20 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node scripts/watch-and-serve.js",
     "build": "astro build && node scripts/post-build-cleanup.js",
-    "preview": "astro preview",
     "package": "npm run build && node scripts/package-banners.js",
     "astro": "astro"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "astro": "^5.15.2",
     "gsap": "^3.13.0",
     "jsdom": "^27.0.1"
   },
   "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "chokidar": "^4.0.3",
     "prettier": "^3.6.2"
   }
 }

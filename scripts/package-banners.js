@@ -1,168 +1,204 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createWriteStream, createReadStream } from 'fs';
+import { pipeline } from 'stream/promises';
+import archiver from 'archiver';
+import { JSDOM } from 'jsdom';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const ROOT_DIR = path.join(__dirname, '..');
-const DIST_DIR = path.join(ROOT_DIR, 'dist');
-const OUTPUT_DIR = path.join(ROOT_DIR, 'packaged-banners');
+const BANNERS_DIR = path.join(ROOT_DIR, 'banners');
+const PACKAGES_DIR = path.join(ROOT_DIR, 'packages');
+const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 
-async function readBannerData() {
-  const dataPath = path.join(ROOT_DIR, 'src/data/banners.json');
-  const content = await fs.readFile(dataPath, 'utf-8');
-  return JSON.parse(content);
-}
+// Define which sizes use which images
+const IMAGE_USAGE = {
+  'embrace.png': ['300x250', '160x600', '300x600']
+};
 
-async function ensureDir(dirPath) {
-  try {
-    await fs.access(dirPath);
-  } catch {
-    await fs.mkdir(dirPath, { recursive: true });
-  }
-}
+async function extractReferencedAssets(htmlPath) {
+  const html = await fs.readFile(htmlPath, 'utf-8');
+  const dom = new JSDOM(html);
+  const doc = dom.window.document;
 
-async function copyFile(src, dest) {
-  await ensureDir(path.dirname(dest));
-  await fs.copyFile(src, dest);
-}
+  const assets = new Set();
 
-async function readFile(filePath) {
-  try {
-    return await fs.readFile(filePath, 'utf-8');
-  } catch {
-    return null;
-  }
-}
+  // Find all img tags
+  const images = doc.querySelectorAll('img');
+  images.forEach(img => {
+    const src = img.getAttribute('src');
+    if (src && src.startsWith('/images/')) {
+      assets.add(src.replace(/^\//, '')); // Remove leading slash
+    }
+  });
 
-async function packageBanner(banner, size) {
-  const sizeId = size.id;
-  const bannerId = banner.id;
-  const outputPath = path.join(OUTPUT_DIR, bannerId, `${size.width}x${size.height}`);
-
-  await ensureDir(outputPath);
-
-  console.log(`\nPackaging: ${banner.name} - ${size.width}x${size.height}`);
-
-  // Read the built HTML from dist
-  const htmlPath = path.join(DIST_DIR, 'banner', bannerId, `${sizeId}.html`);
-  let html = await readFile(htmlPath);
-
-  if (!html) {
-    console.error(`  ❌ HTML file not found: ${htmlPath}`);
-    return;
-  }
-
-  // Copy CSS files
-  const cssBasePath = path.join(DIST_DIR, 'styles/banner-base.css');
-  const cssSizePath = path.join(DIST_DIR, `styles/sizes/${size.width}x${size.height}.css`);
-
-  const cssBase = await readFile(cssBasePath);
-  const cssSize = await readFile(cssSizePath);
-
-  if (cssBase && cssSize) {
-    const combinedCSS = cssBase + '\n\n' + cssSize;
-    await fs.writeFile(path.join(outputPath, 'styles.css'), combinedCSS);
-    console.log('  ✓ CSS bundled');
-  }
-
-  // Copy JavaScript
-  const jsPath = path.join(DIST_DIR, 'scripts/banner-animation.js');
-  const js = await readFile(jsPath);
-
-  if (js) {
-    await fs.writeFile(path.join(outputPath, 'animation.js'), js);
-    console.log('  ✓ JavaScript copied');
-  }
-
-  // Copy images referenced in banner
-  const imagesDir = path.join(outputPath, 'images');
-  await ensureDir(imagesDir);
-
-  for (const [key, assetPath] of Object.entries(banner.assets || {})) {
-    if (assetPath && typeof assetPath === 'string' && assetPath.startsWith('/images/')) {
-      const filename = path.basename(assetPath);
-      const srcPath = path.join(ROOT_DIR, 'public', assetPath);
-      const destPath = path.join(imagesDir, filename);
-
-      try {
-        await copyFile(srcPath, destPath);
-        console.log(`  ✓ Image copied: ${filename}`);
-      } catch (err) {
-        console.log(`  ⚠ Image not found: ${assetPath}`);
+  // Find all background-image styles (if any)
+  const allElements = doc.querySelectorAll('*');
+  allElements.forEach(el => {
+    const style = el.getAttribute('style');
+    if (style && style.includes('background-image')) {
+      const urlMatch = style.match(/url\(['"]?(\/images\/[^'")\s]+)['"]?\)/);
+      if (urlMatch) {
+        assets.add(urlMatch[1].replace(/^\//, ''));
       }
+    }
+  });
+
+  return Array.from(assets);
+}
+
+async function packageBanner(bannerId, sizeId, sourcePath) {
+  const packageName = `${bannerId}_${sizeId}.zip`;
+  const packagePath = path.join(PACKAGES_DIR, packageName);
+
+  console.log(`\n📦 Packaging: ${packageName}`);
+
+  // Create packages directory if it doesn't exist
+  await fs.mkdir(PACKAGES_DIR, { recursive: true });
+
+  // Create output stream
+  const output = createWriteStream(packagePath);
+  const archive = archiver('zip', {
+    zlib: { level: 9 } // Maximum compression
+  });
+
+  // Pipe archive data to the file
+  archive.pipe(output);
+
+  // Add index.html
+  const htmlPath = path.join(sourcePath, 'index.html');
+  const htmlContent = await fs.readFile(htmlPath);
+  archive.append(htmlContent, { name: 'index.html' });
+  console.log('  ✓ Added index.html');
+
+  // Extract and add referenced images
+  const referencedAssets = await extractReferencedAssets(htmlPath);
+
+  for (const assetPath of referencedAssets) {
+    const fullAssetPath = path.join(PUBLIC_DIR, assetPath);
+    try {
+      const assetContent = await fs.readFile(fullAssetPath);
+      archive.append(assetContent, { name: assetPath });
+      console.log(`  ✓ Added ${assetPath}`);
+    } catch (error) {
+      console.log(`  ⚠ Warning: Could not find ${assetPath}`);
     }
   }
 
-  // Update HTML to use local paths
-  html = html.replace(/href="\/styles\/banner-base\.css"/g, 'href="styles.css"');
-  html = html.replace(/href="\/styles\/sizes\/[^"]+"/g, '');
-  html = html.replace(/from '\/scripts\/banner-animation\.js'/g, "from './animation.js'");
-  html = html.replace(/\/images\//g, 'images/');
+  // Finalize the archive
+  await archive.finalize();
 
-  // Write the final HTML
-  await fs.writeFile(path.join(outputPath, 'index.html'), html);
-  console.log('  ✓ HTML created');
+  // Wait for the stream to finish
+  await new Promise((resolve, reject) => {
+    output.on('close', resolve);
+    output.on('error', reject);
+  });
 
-  // Create a ZIP-ready structure info file
-  const info = {
-    campaign: banner.name,
-    size: `${size.width}x${size.height}`,
-    dimensions: { width: size.width, height: size.height },
-    files: [
-      'index.html',
-      'styles.css',
-      'animation.js',
-      ...(await fs.readdir(imagesDir)).map(f => `images/${f}`)
-    ],
-    clickthrough: banner.clickthrough
+  const stats = await fs.stat(packagePath);
+  const sizeKB = (stats.size / 1024).toFixed(2);
+  console.log(`  ✅ Package created: ${packageName} (${sizeKB} KB)`);
+
+  return {
+    packageName,
+    size: stats.size,
+    sizeKB,
+    assets: referencedAssets
   };
+}
 
-  await fs.writeFile(
-    path.join(outputPath, 'banner-info.json'),
-    JSON.stringify(info, null, 2)
-  );
+async function findBannerSizes() {
+  const banners = [];
 
-  console.log(`  ✓ Package complete: ${outputPath}`);
-  return outputPath;
+  try {
+    const entries = await fs.readdir(BANNERS_DIR, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+
+      const bannerId = entry.name;
+      const bannerPath = path.join(BANNERS_DIR, bannerId);
+
+      // Check if this is a banner directory (contains size subdirectories)
+      const sizeEntries = await fs.readdir(bannerPath, { withFileTypes: true });
+
+      for (const sizeEntry of sizeEntries) {
+        if (!sizeEntry.isDirectory() || sizeEntry.name.startsWith('.')) continue;
+
+        const sizeId = sizeEntry.name;
+        const sizePath = path.join(bannerPath, sizeId);
+
+        // Check if it has an index.html
+        try {
+          await fs.access(path.join(sizePath, 'index.html'));
+          banners.push({ bannerId, sizeId, path: sizePath });
+        } catch {
+          // No index.html, skip
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error reading banners directory:', error);
+  }
+
+  return banners;
 }
 
 async function main() {
-  console.log('🎨 Banner Packaging Tool\n');
+  console.log('📦 Banner Packaging Tool\n');
+  console.log('This will create self-contained ZIP packages for each banner size.');
+  console.log('Each package includes only the HTML and referenced assets.\n');
 
-  // Read banner data
-  const data = await readBannerData();
-  console.log(`Found ${data.banners.length} campaign(s)`);
-
-  // Check if dist exists
   try {
-    await fs.access(DIST_DIR);
-  } catch {
-    console.error('\n❌ Error: dist directory not found.');
-    console.error('Please run "npm run build" first.\n');
+    // Find all banner sizes
+    const banners = await findBannerSizes();
+
+    if (banners.length === 0) {
+      console.log('❌ No banners found. Run "npm run build" first.');
+      process.exit(1);
+    }
+
+    console.log(`Found ${banners.length} banner size(s) to package:\n`);
+
+    // Clean packages directory
+    try {
+      await fs.rm(PACKAGES_DIR, { recursive: true });
+    } catch {
+      // Directory doesn't exist, that's fine
+    }
+
+    const results = [];
+
+    // Package each banner
+    for (const banner of banners) {
+      const result = await packageBanner(banner.bannerId, banner.sizeId, banner.path);
+      results.push({ ...banner, ...result });
+    }
+
+    // Print summary
+    console.log('\n' + '='.repeat(60));
+    console.log('📊 PACKAGING SUMMARY');
+    console.log('='.repeat(60));
+
+    for (const result of results) {
+      console.log(`\n${result.packageName}:`);
+      console.log(`  Size: ${result.sizeKB} KB`);
+      console.log(`  Assets: ${result.assets.length > 0 ? result.assets.join(', ') : 'None'}`);
+    }
+
+    const totalSize = results.reduce((sum, r) => sum + r.size, 0);
+    const totalSizeKB = (totalSize / 1024).toFixed(2);
+
+    console.log('\n' + '='.repeat(60));
+    console.log(`Total: ${results.length} packages, ${totalSizeKB} KB`);
+    console.log('='.repeat(60));
+    console.log(`\n✅ All packages created in: ./packages/\n`);
+
+  } catch (error) {
+    console.error('\n❌ Error during packaging:', error);
     process.exit(1);
   }
-
-  // Clean output directory
-  try {
-    await fs.rm(OUTPUT_DIR, { recursive: true });
-  } catch {}
-  await ensureDir(OUTPUT_DIR);
-
-  // Package all banners
-  const packages = [];
-  for (const banner of data.banners) {
-    for (const size of banner.sizes) {
-      const packagePath = await packageBanner(banner, size);
-      if (packagePath) {
-        packages.push(packagePath);
-      }
-    }
-  }
-
-  console.log(`\n✅ Packaged ${packages.length} banner(s)`);
-  console.log(`📦 Output directory: ${OUTPUT_DIR}\n`);
 }
 
-main().catch(console.error);
+main();

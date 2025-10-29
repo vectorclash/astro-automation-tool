@@ -14,21 +14,7 @@ export interface BannerContent {
 export interface BannerAssets {
   logo?: string;
   background?: string;
-  product?: string;
   [key: string]: string | undefined;
-}
-
-export interface AnimationStep {
-  element: string;
-  delay: number;
-  duration: number;
-  effect: 'fadeIn' | 'fadeInUp' | 'fadeInDown' | 'slideInLeft' | 'slideInRight' | 'scale';
-}
-
-export interface BannerAnimation {
-  duration: number;
-  loop: boolean;
-  timeline: AnimationStep[];
 }
 
 export interface Banner {
@@ -36,9 +22,8 @@ export interface Banner {
   name: string;
   sizes: BannerSize[];
   content: BannerContent;
-  assets: BannerAssets;
+  assets?: BannerAssets;
   clickthrough: string;
-  animation: BannerAnimation;
 }
 
 export interface BannerData {

@@ -1,0 +1,28 @@
+---
+// Props for customization
+interface Props {
+  class?: string;
+  width?: string | number;
+  height?: string | number;
+  fill?: string;
+}
+
+const {
+  class: className,
+  width = "50",
+  height = "50",
+  fill = "currentColor"
+} = Astro.props;
+---
+
+<svg
+  class={className}
+  width={width}
+  height={height}
+  viewBox="0 0 100 100"
+  xmlns="http://www.w3.org/2000/svg"
+  fill={fill}
+>
+  <!-- Replace this with your actual SVG content -->
+  <circle cx="50" cy="50" r="40" />
+</svg>

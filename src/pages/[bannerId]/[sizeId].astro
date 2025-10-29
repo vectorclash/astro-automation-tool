@@ -1,0 +1,129 @@
+---
+import Logo from '../../components/svg/Logo.astro';
+import bannerData from '../../data/banners.json';
+import type { BannerData } from '../../types/banner';
+import fs from 'fs';
+import path from 'path';
+
+const data = bannerData as BannerData;
+
+export async function getStaticPaths() {
+  const data = bannerData as BannerData;
+
+  return data.banners.flatMap(banner =>
+    banner.sizes.map(size => ({
+      params: {
+        bannerId: banner.id,
+        sizeId: `${size.width}x${size.height}`
+      },
+      props: { banner, size }
+    }))
+  );
+}
+
+const { bannerId, sizeId } = Astro.params;
+const { banner, size } = Astro.props;
+
+// Read CSS files and inline them
+const baseCssPath = path.join(process.cwd(), 'src/styles/banner-base.css');
+const sizeCssPath = path.join(process.cwd(), `src/styles/sizes/${size.width}x${size.height}.css`);
+const baseCss = fs.readFileSync(baseCssPath, 'utf-8');
+const sizeCss = fs.readFileSync(sizeCssPath, 'utf-8');
+
+// Read our custom GSAP animation code and inline it
+const animationPath = path.join(process.cwd(), 'src/scripts/gsap-banner-animation.js');
+let animationCode = fs.readFileSync(animationPath, 'utf-8');
+// Remove ES6 imports/exports for inline use
+animationCode = animationCode.replace(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?\s*/g, '');
+animationCode = animationCode.replace(/export\s+/g, '');
+
+const sizeClass = `size-${size.width}x${size.height}`;
+const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="ad.size" content={`width=${size.width},height=${size.height}`} />
+    <title>{banner.name} - {size.width}x{size.height}</title>
+    <style set:html={baseCss} />
+    <style set:html={sizeCss} />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id={bannerElementId} class={`banner ${sizeClass}`} data-banner-id={banner.id} data-size-id={size.id}>
+      {banner.assets?.embrace && ['300x250', '160x600', '300x600'].includes(sizeId) && (
+        <img src={banner.assets.embrace} alt="" class="embrace" />
+      )}
+      <Logo class="logo" fill="#ffffff" />
+      <div class="banner-container">
+        <div class="banner-content">
+          {(size.id === 'leaderboard' || size.id === 'mobile-banner') ? (
+            <>
+              <div class="text-group">
+                {banner.content.eyebrow && size.id !== 'mobile-banner' && (
+                  <p class="eyebrow">{banner.content.eyebrow}</p>
+                )}
+                <p class="headline">{banner.content.headline}</p>
+                {size.id !== 'mobile-banner' && (
+                  <p class="subhead">{banner.content.subhead}</p>
+                )}
+              </div>
+              <button class="cta-button">{banner.content.cta}</button>
+            </>
+          ) : (
+            <>
+              {banner.content.eyebrow && (
+                <p class="eyebrow">{banner.content.eyebrow}</p>
+              )}
+              <p class="headline">{banner.content.headline}</p>
+              <p class="subhead">{banner.content.subhead}</p>
+              <button class="cta-button">{banner.content.cta}</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+    <script is:inline set:html={animationCode}></script>
+    <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
+      (function() {
+        // Define clickTag variable - standard for ad banners
+        // Ad servers can override this value
+        var clickTag = clickthrough;
+
+        gsap.registerPlugin(SplitText);
+
+        // Initialize GSAP animation with config
+        initGSAPBannerAnimation({
+          containerId: bannerElementId,
+          sizeId: sizeId,
+          width: width,
+          height: height
+        });
+
+        // Handle banner click
+        var banner = document.getElementById(bannerElementId);
+        if (banner) {
+          banner.style.cursor = 'pointer';
+          banner.addEventListener('click', function() {
+            // Use clickTag variable for navigation
+            if (clickTag) {
+              window.open(clickTag, '_blank');
+            }
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

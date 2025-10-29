@@ -1,0 +1,45 @@
+---
+// A simple arrow icon that could be used in CTAs
+interface Props {
+  class?: string;
+  width?: string | number;
+  height?: string | number;
+  direction?: 'right' | 'left' | 'up' | 'down';
+  color?: string;
+}
+
+const {
+  class: className,
+  width = "24",
+  height = "24",
+  direction = "right",
+  color = "currentColor"
+} = Astro.props;
+
+// Rotation based on direction
+const rotations = {
+  right: 0,
+  down: 90,
+  left: 180,
+  up: 270
+};
+
+const rotation = rotations[direction];
+---
+
+<svg
+  class={className}
+  width={width}
+  height={height}
+  viewBox="0 0 24 24"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+  stroke={color}
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  style={`transform: rotate(${rotation}deg);`}
+>
+  <line x1="5" y1="12" x2="19" y2="12" />
+  <polyline points="12 5 19 12 12 19" />
+</svg>
