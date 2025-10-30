@@ -12,7 +12,7 @@
   justify-content: space-between;
 }
 
-.banner.size-320x50 .banner-logo {
+.banner.size-320x50 .logo {
   top: 50%;
   left: 12px;
   transform: translateY(-50%);

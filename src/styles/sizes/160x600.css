@@ -9,17 +9,16 @@
   padding: 16px 12px;
 }
 
-.banner.size-160x600 .banner-logo {
+.banner.size-160x600 .logo {
   top: 12px;
   left: 50%;
   transform: translateX(-50%);
-  max-width: 100px;
+  width: 80px;
 }
 
 .banner.size-160x600 .banner-content {
   justify-content: center;
   text-align: center;
-  margin-top: 80px;
 }
 
 .banner.size-160x600 .eyebrow {
@@ -43,4 +42,8 @@
   font-size: 12px;
   width: 100%;
   margin-top: 0;
+}
+
+.banner.size-160x600 .embrace {
+  bottom: 100px;
 }

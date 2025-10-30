@@ -12,7 +12,7 @@
   justify-content: space-between;
 }
 
-.banner.size-728x90 .banner-logo {
+.banner.size-728x90 .logo {
   top: 50%;
   left: 20px;
   transform: translateY(-50%);

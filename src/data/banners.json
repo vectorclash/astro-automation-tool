@@ -15,6 +15,11 @@
           "id": "leaderboard"
         },
         {
+          "width": 970,
+          "height": 250,
+          "id": "billboard"
+        },
+        {
           "width": 160,
           "height": 600,
           "id": "wide-skyscraper"
