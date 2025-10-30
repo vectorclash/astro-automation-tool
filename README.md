@@ -9,6 +9,7 @@ A modular system for building and packaging banner ads from templates using Astr
 - **Size Variants**: Built-in support for common IAB banner sizes:
   - 300x250 (Medium Rectangle)
   - 728x90 (Leaderboard)
+  - 970x250 (Billboard)
   - 160x600 (Wide Skyscraper)
   - 300x600 (Half Page)
   - 320x50 (Mobile Banner)
@@ -31,12 +32,13 @@ astro-automation-tool/
 │   │   ├── index.astro               # Preview page (all banners)
 │   │   └── banner/[bannerId]/[sizeId].astro  # Individual banner pages
 │   ├── scripts/
-│   │   └── banner-animation.ts       # Animation system
+│   │   └── banner-animation.ts       # GSAP-based animation system
 │   ├── styles/
 │   │   ├── banner-base.css           # Shared styles for all banners
 │   │   └── sizes/                    # Size-specific styles
 │   │       ├── 300x250.css
 │   │       ├── 728x90.css
+│   │       ├── 970x250.css
 │   │       ├── 160x600.css
 │   │       ├── 300x600.css
 │   │       └── 320x50.css
@@ -45,7 +47,9 @@ astro-automation-tool/
 ├── public/
 │   └── images/                       # Banner assets (logos, backgrounds, etc.)
 ├── scripts/
-│   └── package-banners.js            # Packaging script
+│   ├── package-banners.js            # Packaging script
+│   ├── post-build-cleanup.js         # Build cleanup and optimization
+│   └── watch-and-serve.js            # Development server with hot reload
 └── packaged-banners/                 # Generated packages (after build)
 ```
 
@@ -57,13 +61,11 @@ astro-automation-tool/
 npm install
 ```
 
-### 2. Add Your Images
+### 2. Add Your Assets
 
 Place your banner assets in `public/images/`:
-- logo.png
-- bg.jpg
-- product.png
-- (or any custom images)
+- embrace.png (or your custom product/brand images)
+- logos, backgrounds, or any other visual assets
 
 ### 3. Configure Your Banner
 
@@ -74,18 +76,34 @@ Edit `src/data/banners.json` to customize your banner content:
   "banners": [
     {
       "id": "campaign-001",
-      "name": "My Campaign",
+      "name": "Sample Campaign",
+      "sizes": [
+        {
+          "width": 300,
+          "height": 250,
+          "id": "medium-rectangle"
+        },
+        {
+          "width": 728,
+          "height": 90,
+          "id": "leaderboard"
+        },
+        {
+          "width": 970,
+          "height": 250,
+          "id": "billboard"
+        }
+      ],
       "content": {
-        "eyebrow": "New Product Launch",
-        "headline": "Experience the Future",
-        "subhead": "Innovation meets design",
-        "cta": "Shop Now"
+        "eyebrow": "Learn how to get the all-new",
+        "headline": "iPhone 17 Pro for $0",
+        "subhead": "with eligible trade-in",
+        "cta": "Shop now"
       },
       "assets": {
-        "logo": "/images/logo.png",
-        "background": "/images/bg.jpg"
+        "embrace": "/images/embrace.png"
       },
-      "clickthrough": "https://example.com/campaign"
+      "clickthrough": "https://www.example.com"
     }
   ]
 }
@@ -93,13 +111,13 @@ Edit `src/data/banners.json` to customize your banner content:
 
 ### 4. Preview Banners
 
-Start the development server:
+Start the development server with live reload:
 
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:4321` to preview all banner sizes.
+This starts a BrowserSync server with automatic rebuilding on file changes. Visit the URL displayed in the terminal to preview all banner sizes simultaneously.
 
 ### 5. Package Banners
 
@@ -111,10 +129,12 @@ npm run package
 
 This creates individual packages in `packaged-banners/` with:
 - `index.html` - The banner HTML
-- `styles.css` - Bundled CSS
-- `animation.js` - Animation script
+- `styles.css` - Bundled and inlined CSS
+- `animation.js` - GSAP animation script
 - `images/` - Required image assets
 - `banner-info.json` - Banner metadata
+
+The build process automatically cleans up unused files and optimizes the output for ad serving.
 
 ## Banner Configuration
 
@@ -135,36 +155,35 @@ Each banner can render in multiple sizes. Add or remove sizes in `banners.json`:
     "width": 300,
     "height": 250,
     "id": "medium-rectangle"
+  },
+  {
+    "width": 970,
+    "height": 250,
+    "id": "billboard"
   }
 ]
 ```
 
+**Available sizes:**
+- 300x250 (medium-rectangle)
+- 728x90 (leaderboard)
+- 970x250 (billboard)
+- 160x600 (wide-skyscraper)
+- 300x600 (half-page)
+- 320x50 (mobile-banner)
+
 ### Animation Configuration
 
-Customize the animation timeline:
+The animation system uses GSAP for smooth, performant animations. Customize timing and effects in `src/scripts/banner-animation.ts`.
 
-```json
-"animation": {
-  "duration": 3000,
-  "loop": true,
-  "timeline": [
-    {
-      "element": "eyebrow",
-      "delay": 0,
-      "duration": 500,
-      "effect": "fadeIn"
-    }
-  ]
-}
-```
+Default animation sequence:
+1. Logo fades in
+2. Eyebrow text slides in from top
+3. Headline slides in from left
+4. Subhead slides in from left (staggered)
+5. CTA button appears with scale effect
 
-**Available effects:**
-- `fadeIn`
-- `fadeInUp`
-- `fadeInDown`
-- `slideInLeft`
-- `slideInRight`
-- `scale`
+You can adjust timing, easing, and animation properties by modifying the GSAP timeline in the animation script.
 
 ## Customization
 
@@ -197,19 +216,19 @@ Customize the animation timeline:
 - **Size-specific styles**: Edit files in `src/styles/sizes/`
 - **Animation styles**: Modify keyframes in `banner-base.css`
 
-### Modifying JavaScript
+### Modifying Animations
 
-The animation system is in `src/scripts/banner-animation.ts`. You can:
-- Add custom animation effects
+The GSAP animation system is in `src/scripts/banner-animation.ts`. You can:
+- Adjust animation timing and easing functions
 - Create size-specific animation adjustments
-- Modify timing and sequencing logic
+- Add custom GSAP effects and transitions
+- Modify the animation timeline sequence
 
 ## Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build all banners for production
-- `npm run preview` - Preview production build
-- `npm run package` - Build and package individual banners
+- `npm run dev` - Start development server with BrowserSync and automatic rebuilds
+- `npm run build` - Build all banners for production with post-build cleanup
+- `npm run package` - Build and package individual banners for ad serving
 
 ## Export Workflow
 
@@ -222,19 +241,22 @@ The animation system is in `src/scripts/banner-animation.ts`. You can:
 
 ## Tips
 
-- Keep headline text short for smaller sizes (mobile)
-- Test animations at different speeds
-- Optimize images before adding to `public/images/`
-- Use consistent naming for campaign IDs
-- The 320x50 mobile banner hides eyebrow and subhead by default
-- The 728x90 leaderboard uses horizontal layout
+- Keep headline text short for smaller sizes (320x50 mobile banner)
+- The 320x50 mobile banner automatically hides eyebrow and subhead for space
+- The 728x90 leaderboard and 970x250 billboard use horizontal layouts
+- Optimize images before adding to `public/images/` for faster load times
+- Use consistent naming for campaign IDs to keep packages organized
+- The development server automatically refreshes when you make changes
+- Each packaged banner is self-contained with all dependencies included
 
 ## Technology Stack
 
-- **Astro** - Static site generation
-- **TypeScript** - Type safety
-- **CSS3** - Animations and responsive design
-- **Vanilla JavaScript** - Animation system
+- **Astro** - Static site generation and build system
+- **TypeScript** - Type safety and better development experience
+- **GSAP** - High-performance animation library
+- **CSS3** - Modular styling and layout system
+- **BrowserSync** - Live reload development server
+- **Archiver** - Automated packaging for ad serving
 
 ## License
 
