@@ -24,14 +24,19 @@ export async function getStaticPaths() {
 const { bannerId, sizeId } = Astro.params;
 const { banner, size } = Astro.props;
 
+// Create title string to avoid rendering issues
+const pageTitle = `${banner.name} - ${size.width}x${size.height}`;
+
 // Read CSS files and inline them
+const resetCssPath = path.join(process.cwd(), 'src/styles/reset.css');
 const baseCssPath = path.join(process.cwd(), 'src/styles/banner-base.css');
 const sizeCssPath = path.join(process.cwd(), `src/styles/sizes/${size.width}x${size.height}.css`);
+const resetCss = fs.readFileSync(resetCssPath, 'utf-8');
 const baseCss = fs.readFileSync(baseCssPath, 'utf-8');
 const sizeCss = fs.readFileSync(sizeCssPath, 'utf-8');
 
 // Read our custom GSAP animation code and inline it
-const animationPath = path.join(process.cwd(), 'src/scripts/gsap-banner-animation.js');
+const animationPath = path.join(process.cwd(), 'src/scripts/banner-animation.js');
 let animationCode = fs.readFileSync(animationPath, 'utf-8');
 // Remove ES6 imports/exports for inline use
 animationCode = animationCode.replace(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?\s*/g, '');
@@ -47,16 +52,13 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="ad.size" content={`width=${size.width},height=${size.height}`} />
-    <title>{banner.name} - {size.width}x{size.height}</title>
-    <style set:html={baseCss} />
-    <style set:html={sizeCss} />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-    </style>
+    <title>{pageTitle}</title>
+    <script is:inline>
+      var clickTag = "https://www.att.com/";
+    </script>
+    <style set:html={resetCss}></style>
+    <style set:html={baseCss}></style>
+    <style set:html={sizeCss}></style>
   </head>
   <body>
     <div id={bannerElementId} class={`banner ${sizeClass}`} data-banner-id={banner.id} data-size-id={size.id}>
@@ -97,14 +99,8 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
     <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
     <script is:inline set:html={animationCode}></script>
     <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
-      // Define clickTag variable - standard for ad banners
-      // Ad servers can override this value
-      var clickTag = clickthrough;
-
-      gsap.registerPlugin(SplitText);
-
       // Initialize GSAP animation with config
-      initGSAPBannerAnimation({
+      initAnimation({
         containerId: bannerElementId,
         sizeId: sizeId,
         width: width,

@@ -8,5 +8,11 @@ export default defineConfig({
     format: 'directory',
     inlineStylesheets: 'always'
   },
-  compressHTML: false
+  compressHTML: false,
+  vite: {
+    build: {
+      minify: false,
+      cssMinify: false
+    }
+  }
 });

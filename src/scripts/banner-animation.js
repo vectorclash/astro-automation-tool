@@ -1,9 +1,7 @@
 import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
 
-/**
- * Initialize GSAP-based banner animation
- */
-export function initGSAPBannerAnimation(config) {
+export function initAnimation(config) {
   const {
     containerId,
     sizeId,
@@ -16,6 +14,8 @@ export function initGSAPBannerAnimation(config) {
     console.error(`Container ${containerId} not found`);
     return;
   }
+
+  gsap.registerPlugin(SplitText);
 
   // Get all animated elements
   const eyebrow = container.querySelector('.eyebrow');
