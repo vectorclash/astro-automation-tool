@@ -97,33 +97,31 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
     <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
     <script is:inline set:html={animationCode}></script>
     <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
-      (function() {
-        // Define clickTag variable - standard for ad banners
-        // Ad servers can override this value
-        var clickTag = clickthrough;
+      // Define clickTag variable - standard for ad banners
+      // Ad servers can override this value
+      var clickTag = clickthrough;
 
-        gsap.registerPlugin(SplitText);
+      gsap.registerPlugin(SplitText);
 
-        // Initialize GSAP animation with config
-        initGSAPBannerAnimation({
-          containerId: bannerElementId,
-          sizeId: sizeId,
-          width: width,
-          height: height
+      // Initialize GSAP animation with config
+      initGSAPBannerAnimation({
+        containerId: bannerElementId,
+        sizeId: sizeId,
+        width: width,
+        height: height
+      });
+
+      // Handle banner click
+      var banner = document.getElementById(bannerElementId);
+      if (banner) {
+        banner.style.cursor = 'pointer';
+        banner.addEventListener('click', function() {
+          // Use clickTag variable for navigation
+          if (clickTag) {
+            window.open(clickTag, '_blank');
+          }
         });
-
-        // Handle banner click
-        var banner = document.getElementById(bannerElementId);
-        if (banner) {
-          banner.style.cursor = 'pointer';
-          banner.addEventListener('click', function() {
-            // Use clickTag variable for navigation
-            if (clickTag) {
-              window.open(clickTag, '_blank');
-            }
-          });
-        }
-      })();
+      }
     </script>
   </body>
 </html>
