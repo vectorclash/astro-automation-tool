@@ -24,7 +24,7 @@ function preloadImages(container) {
       loadedCount++;
       console.log(`Image ${loadedCount}/${totalImages} loaded`);
       if (loadedCount === totalImages) {
-        console.log('All images loaded, starting animation');
+        console.log('All images loaded');
         resolve();
       }
     };
@@ -40,7 +40,27 @@ function preloadImages(container) {
   });
 }
 
-export function initAnimation(config) {
+/**
+ * Wait for fonts to be fully rendered and measured
+ * Ensures accurate text measurements for SplitText
+ * @returns {Promise} - Resolves after fonts are rendered
+ */
+function waitForFontsRendered() {
+  return new Promise((resolve) => {
+    // Give browser time to render fonts after they're loaded
+    // This prevents SplitText measurement issues
+    setTimeout(() => {
+      console.log('Fonts rendered and ready');
+      resolve();
+    }, 50);
+  });
+}
+
+/**
+ * Initialize and play banner animation
+ * Called only after fonts and images are loaded
+ */
+export async function initAnimation(config) {
   const {
     containerId,
     sizeId,
@@ -53,6 +73,12 @@ export function initAnimation(config) {
     console.error(`Container ${containerId} not found`);
     return;
   }
+
+  // Wait for fonts to be fully rendered before measuring text
+  await waitForFontsRendered();
+
+  // Preload images
+  await preloadImages(container);
 
   gsap.registerPlugin(SplitText);
 
@@ -69,6 +95,7 @@ export function initAnimation(config) {
 
   tl.set(".banner-container", { visibility: 'visible' });
 
+  // Now safe to split text - fonts are fully rendered
   let copySplit = new SplitText(copy, "lines");
 
   tl.from(copySplit.lines, {
@@ -85,17 +112,9 @@ export function initAnimation(config) {
     ease: 'back.out'
   });
 
-  // Start animation when ready and all images are loaded
-  const startAnimation = async () => {
-    await preloadImages(container);
-    setTimeout(() => tl.play(), 100);
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startAnimation);
-  } else {
-    startAnimation();
-  }
+  // Play animation with small delay for stability
+  console.log('Starting animation');
+  setTimeout(() => tl.play(), 100);
 
   return tl;
 }

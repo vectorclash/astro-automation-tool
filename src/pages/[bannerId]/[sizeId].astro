@@ -35,6 +35,10 @@ const resetCss = fs.readFileSync(resetCssPath, 'utf-8');
 const baseCss = fs.readFileSync(baseCssPath, 'utf-8');
 const sizeCss = fs.readFileSync(sizeCssPath, 'utf-8');
 
+// Read web font loader and inline it
+const webFontLoaderPath = path.join(process.cwd(), 'src/scripts/webfontloader.js');
+const webFontLoaderCode = fs.readFileSync(webFontLoaderPath, 'utf-8');
+
 // Read our custom GSAP animation code and inline it
 const animationPath = path.join(process.cwd(), 'src/scripts/banner-animation.js');
 let animationCode = fs.readFileSync(animationPath, 'utf-8');
@@ -44,6 +48,10 @@ animationCode = animationCode.replace(/export\s+/g, '');
 
 const sizeClass = `size-${size.width}x${size.height}`;
 const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
+
+// Determine logo variant based on banner size
+// Use icon for smaller banners, full logo for larger ones
+const logoVariant = size.height < 90 ? 'icon' : 'full';
 ---
 
 <!DOCTYPE html>
@@ -65,7 +73,7 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
       {banner.assets?.embrace && ['300x250', '160x600', '300x600'].includes(sizeId) && (
         <img src={banner.assets.embrace} alt="" class="embrace" />
       )}
-      <Logo class="logo" fill="#ffffff" />
+      <Logo class="logo" variant={logoVariant} fill="#ffffff" />
       <div class="banner-container">
         <div class="banner-content">
           {(size.id === 'leaderboard' || size.id === 'mobile-banner') ? (
@@ -95,29 +103,84 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
       </div>
     </div>
 
+    <!-- Load WebFont Loader first -->
+    <script is:inline set:html={webFontLoaderCode}></script>
+
+    <!-- Load GSAP libraries -->
     <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
-    <script is:inline set:html={animationCode}></script>
-    <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
-      // Initialize GSAP animation with config
-      initAnimation({
-        containerId: bannerElementId,
-        sizeId: sizeId,
-        width: width,
-        height: height
-      });
 
-      // Handle banner click
-      var banner = document.getElementById(bannerElementId);
-      if (banner) {
-        banner.style.cursor = 'pointer';
-        banner.addEventListener('click', function() {
-          // Use clickTag variable for navigation
-          if (clickTag) {
-            window.open(clickTag, '_blank');
+    <!-- Load animation code -->
+    <script is:inline set:html={animationCode}></script>
+
+    <!-- Unified initialization system -->
+    <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
+      (function() {
+        // Track loading state
+        const loadingState = {
+          dom: false,
+          fonts: false
+        };
+
+        // Check if everything is ready
+        function checkReady() {
+          if (loadingState.dom && loadingState.fonts) {
+            console.log('All assets ready, initializing banner');
+            startBanner();
+          }
+        }
+
+        // Start banner animation and setup click handler
+        function startBanner() {
+          // Initialize animation (this will handle image preloading internally)
+          initAnimation({
+            containerId: bannerElementId,
+            width: width,
+            height: height
+          });
+
+          // Setup click handler
+          var banner = document.getElementById(bannerElementId);
+          if (banner) {
+            banner.style.cursor = 'pointer';
+            banner.addEventListener('click', function() {
+              if (clickTag) {
+                window.open(clickTag, '_blank');
+              }
+            });
+          }
+        }
+
+        // Load fonts
+        WebFont.load({
+          google: {
+            families: ['Roboto:300,400,700']
+          },
+          active: function() {
+            console.log('Fonts loaded');
+            loadingState.fonts = true;
+            checkReady();
+          },
+          inactive: function() {
+            console.log('Fonts failed to load, continuing anyway');
+            loadingState.fonts = true;
+            checkReady();
           }
         });
-      }
+
+        // Wait for DOM
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready');
+            loadingState.dom = true;
+            checkReady();
+          });
+        } else {
+          console.log('DOM ready');
+          loadingState.dom = true;
+          checkReady();
+        }
+      })();
     </script>
   </body>
 </html>
