@@ -1,11 +1,19 @@
 ---
 import Logo from '../../components/svg/Logo.astro';
+import DefaultContent from '../../components/content/DefaultContent.astro';
+import SimpleContent from '../../components/content/SimpleContent.astro';
 import bannerData from '../../data/banners.json';
 import type { BannerData } from '../../types/banner';
 import fs from 'fs';
 import path from 'path';
 
 const data = bannerData as BannerData;
+
+// Map of available content templates
+const contentTemplates = {
+  'DefaultContent': DefaultContent,
+  'SimpleContent': SimpleContent,
+};
 
 export async function getStaticPaths() {
   const data = bannerData as BannerData;
@@ -52,6 +60,10 @@ const bannerElementId = `banner-${banner.id}-${size.width}x${size.height}`;
 // Determine logo variant based on banner size
 // Use icon for smaller banners, full logo for larger ones
 const logoVariant = size.height < 90 ? 'icon' : 'full';
+
+// Get the content template component (defaults to DefaultContent)
+const templateName = banner.contentTemplate || 'DefaultContent';
+const ContentComponent = contentTemplates[templateName as keyof typeof contentTemplates] || DefaultContent;
 ---
 
 <!DOCTYPE html>
@@ -69,36 +81,14 @@ const logoVariant = size.height < 90 ? 'icon' : 'full';
     <style set:html={sizeCss}></style>
   </head>
   <body>
-    <div id={bannerElementId} class={`banner ${sizeClass}`} data-banner-id={banner.id} data-size-id={size.id}>
+    <div id={bannerElementId} class={`banner ${sizeClass}`} data-banner-id={banner.id} data-size={sizeId}>
       {banner.assets?.embrace && ['300x250', '160x600', '300x600'].includes(sizeId) && (
         <img src={banner.assets.embrace} alt="" class="embrace" />
       )}
       <Logo class="logo" variant={logoVariant} fill="#ffffff" />
       <div class="banner-container">
         <div class="banner-content">
-          {(size.id === 'leaderboard' || size.id === 'mobile-banner') ? (
-            <>
-              <div class="text-group">
-                {banner.content.eyebrow && size.id !== 'mobile-banner' && (
-                  <p class="eyebrow">{banner.content.eyebrow}</p>
-                )}
-                <p class="headline">{banner.content.headline}</p>
-                {size.id !== 'mobile-banner' && (
-                  <p class="subhead">{banner.content.subhead}</p>
-                )}
-              </div>
-              <button class="cta-button">{banner.content.cta}</button>
-            </>
-          ) : (
-            <>
-              {banner.content.eyebrow && (
-                <p class="eyebrow">{banner.content.eyebrow}</p>
-              )}
-              <p class="headline">{banner.content.headline}</p>
-              <p class="subhead">{banner.content.subhead}</p>
-              <button class="cta-button">{banner.content.cta}</button>
-            </>
-          )}
+          <ContentComponent banner={banner} size={size} sizeId={sizeId} />
         </div>
       </div>
     </div>
@@ -114,7 +104,7 @@ const logoVariant = size.height < 90 ? 'icon' : 'full';
     <script is:inline set:html={animationCode}></script>
 
     <!-- Unified initialization system -->
-    <script is:inline define:vars={{ bannerElementId, clickthrough: banner.clickthrough, width: size.width, height: size.height, sizeId: size.id }}>
+    <script is:inline define:vars={{ bannerElementId, width: size.width, height: size.height }}>
       (function() {
         // Track loading state
         const loadingState = {

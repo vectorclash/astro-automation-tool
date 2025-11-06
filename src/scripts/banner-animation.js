@@ -63,7 +63,6 @@ function waitForFontsRendered() {
 export async function initAnimation(config) {
   const {
     containerId,
-    sizeId,
     width,
     height
   } = config;

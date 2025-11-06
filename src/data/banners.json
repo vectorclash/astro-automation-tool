@@ -6,33 +6,27 @@
       "sizes": [
         {
           "width": 300,
-          "height": 250,
-          "id": "medium-rectangle"
+          "height": 250
         },
         {
           "width": 728,
-          "height": 90,
-          "id": "leaderboard"
+          "height": 90
         },
         {
           "width": 970,
-          "height": 250,
-          "id": "billboard"
+          "height": 250
         },
         {
           "width": 160,
-          "height": 600,
-          "id": "wide-skyscraper"
+          "height": 600
         },
         {
           "width": 300,
-          "height": 600,
-          "id": "half-page"
+          "height": 600
         },
         {
           "width": 320,
-          "height": 50,
-          "id": "mobile-banner"
+          "height": 50
         }
       ],
       "content": {
@@ -43,54 +37,7 @@
       },
       "assets": {
         "embrace": "/images/embrace.png"
-      },
-      "clickthrough": "https://www.att.com"
-    },
-    {
-      "id": "campaign-002",
-      "name": "Sample Campaign Google",
-      "sizes": [
-        {
-          "width": 300,
-          "height": 250,
-          "id": "medium-rectangle"
-        },
-        {
-          "width": 728,
-          "height": 90,
-          "id": "leaderboard"
-        },
-        {
-          "width": 970,
-          "height": 250,
-          "id": "billboard"
-        },
-        {
-          "width": 160,
-          "height": 600,
-          "id": "wide-skyscraper"
-        },
-        {
-          "width": 300,
-          "height": 600,
-          "id": "half-page"
-        },
-        {
-          "width": 320,
-          "height": 50,
-          "id": "mobile-banner"
-        }
-      ],
-      "content": {
-        "eyebrow": "Learn how to get the",
-        "headline": "Google Pixel 10 for $0",
-        "subhead": "with eligible trade-in",
-        "cta": "Buy now"
-      },
-      "assets": {
-        "embrace": "/images/embrace.png"
-      },
-      "clickthrough": "https://www.att.com"
+      }
     }
   ]
 }

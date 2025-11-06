@@ -1,0 +1,43 @@
+---
+/**
+ * Default content template for banners
+ * Shows standard layout with eyebrow, headline, subhead, and CTA
+ */
+interface Props {
+  banner: any;
+  size: any;
+  sizeId: string;
+}
+
+const { banner, size, sizeId } = Astro.props;
+
+// Determine layout based on dimensions rather than specific IDs
+// This is more flexible for multiple sizes with similar layouts
+const isLeaderboard = size.width === 728 && size.height === 90;
+const isMobileBanner = size.height === 50; // Catches 320x50, 300x50, etc.
+const useHorizontalLayout = isLeaderboard || isMobileBanner;
+---
+
+{useHorizontalLayout ? (
+  <>
+    <div class="text-group">
+      {banner.content.eyebrow && !isMobileBanner && (
+        <p class="eyebrow">{banner.content.eyebrow}</p>
+      )}
+      <p class="headline">{banner.content.headline}</p>
+      {!isMobileBanner && (
+        <p class="subhead">{banner.content.subhead}</p>
+      )}
+    </div>
+    <button class="cta-button">{banner.content.cta}</button>
+  </>
+) : (
+  <>
+    {banner.content.eyebrow && (
+      <p class="eyebrow">{banner.content.eyebrow}</p>
+    )}
+    <p class="headline">{banner.content.headline}</p>
+    <p class="subhead">{banner.content.subhead}</p>
+    <button class="cta-button">{banner.content.cta}</button>
+  </>
+)}

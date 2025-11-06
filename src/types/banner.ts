@@ -1,7 +1,6 @@
 export interface BannerSize {
   width: number;
   height: number;
-  id: string;
 }
 
 export interface BannerContent {
@@ -23,7 +22,7 @@ export interface Banner {
   sizes: BannerSize[];
   content: BannerContent;
   assets?: BannerAssets;
-  clickthrough: string;
+  contentTemplate?: string; // Optional: specify which content component to use (defaults to 'DefaultContent')
 }
 
 export interface BannerData {

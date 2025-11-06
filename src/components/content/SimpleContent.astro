@@ -1,0 +1,16 @@
+---
+/**
+ * Simple content template for banners
+ * Minimal layout with just headline and CTA
+ */
+interface Props {
+  banner: any;
+  size: any;
+  sizeId: string;
+}
+
+const { banner, size, sizeId } = Astro.props;
+---
+
+<p class="headline">{banner.content.headline}</p>
+<button class="cta-button">{banner.content.cta}</button>
