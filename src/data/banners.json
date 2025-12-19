@@ -37,6 +37,15 @@
       },
       "assets": {
         "embrace": "/images/embrace.png"
+      },
+      "sizeAssets": {
+        "300x250": {
+          "product": "/images/campaign-001/product-300x250.png",
+          "background": "/images/campaign-001/bg-300x250.jpg"
+        },
+        "728x90": {
+          "product": "/images/campaign-001/product-728x90.png"
+        }
       }
     }
   ]

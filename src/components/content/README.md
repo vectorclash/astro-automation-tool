@@ -92,13 +92,68 @@ Templates receive these props:
   - `banner.id` - Banner ID
   - `banner.name` - Banner name
   - `banner.content` - Content object (headline, subhead, cta, eyebrow, etc.)
-  - `banner.assets` - Asset URLs
+  - `banner.assets` - Global asset URLs (shared across all sizes)
 
 - `size` - Size configuration object
   - `size.width` - Banner width
   - `size.height` - Banner height
 
 - `sizeId` - String format of size (e.g., '300x250')
+
+- `sizeAssets` - Size-specific assets for the current banner size
+  - Contains assets unique to this particular size
+  - Example: `sizeAssets.product`, `sizeAssets.background`
+
+## Using Size-Specific Assets
+
+Size-specific assets allow you to have different images for each banner size. This is useful when you need uniquely cropped or formatted images for different dimensions.
+
+### In your JSON:
+
+```json
+{
+  "id": "campaign-001",
+  "name": "My Campaign",
+  "assets": {
+    "embrace": "/images/embrace.png"
+  },
+  "sizeAssets": {
+    "300x250": {
+      "product": "/images/campaign-001/product-300x250.png",
+      "background": "/images/campaign-001/bg-300x250.jpg"
+    },
+    "728x90": {
+      "product": "/images/campaign-001/product-728x90.png"
+    }
+  }
+}
+```
+
+### In your template:
+
+```astro
+---
+interface Props {
+  banner: any;
+  size: any;
+  sizeId: string;
+  sizeAssets?: any;
+}
+
+const { banner, size, sizeId, sizeAssets = {} } = Astro.props;
+---
+
+{sizeAssets.background && (
+  <img src={sizeAssets.background} alt="" class="background-image" />
+)}
+
+{sizeAssets.product && (
+  <img src={sizeAssets.product} alt="Product" class="product-image" />
+)}
+
+<p class="headline">{banner.content.headline}</p>
+<button class="cta-button">{banner.content.cta}</button>
+```
 
 ## Tips
 
@@ -111,3 +166,6 @@ Templates receive these props:
   const isMobile = size.height === 50;
   const isLeaderboard = size.width === 728 && size.height === 90;
   ```
+- **Global vs Size-Specific Assets:**
+  - Use `banner.assets` for images shared across all sizes (like logos)
+  - Use `sizeAssets` for images unique to each size (like cropped product shots)

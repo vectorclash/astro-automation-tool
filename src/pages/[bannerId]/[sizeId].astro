@@ -2,6 +2,7 @@
 import Logo from '../../components/svg/Logo.astro';
 import DefaultContent from '../../components/content/DefaultContent.astro';
 import SimpleContent from '../../components/content/SimpleContent.astro';
+import ProductShowcaseContent from '../../components/content/ProductShowcaseContent.astro';
 import bannerData from '../../data/banners.json';
 import type { BannerData } from '../../types/banner';
 import fs from 'fs';
@@ -13,6 +14,7 @@ const data = bannerData as BannerData;
 const contentTemplates = {
   'DefaultContent': DefaultContent,
   'SimpleContent': SimpleContent,
+  'ProductShowcaseContent': ProductShowcaseContent,
 };
 
 export async function getStaticPaths() {
@@ -47,6 +49,10 @@ const sizeCss = fs.readFileSync(sizeCssPath, 'utf-8');
 const webFontLoaderPath = path.join(process.cwd(), 'src/scripts/webfontloader.js');
 const webFontLoaderCode = fs.readFileSync(webFontLoaderPath, 'utf-8');
 
+// Read banner initialization code and inline it
+const bannerInitPath = path.join(process.cwd(), 'src/scripts/banner-init.js');
+const bannerInitCode = fs.readFileSync(bannerInitPath, 'utf-8');
+
 // Read our custom GSAP animation code and inline it
 const animationPath = path.join(process.cwd(), 'src/scripts/banner-animation.js');
 let animationCode = fs.readFileSync(animationPath, 'utf-8');
@@ -64,6 +70,9 @@ const logoVariant = size.height < 90 ? 'icon' : 'full';
 // Get the content template component (defaults to DefaultContent)
 const templateName = banner.contentTemplate || 'DefaultContent';
 const ContentComponent = contentTemplates[templateName as keyof typeof contentTemplates] || DefaultContent;
+
+// Get size-specific assets if available
+const currentSizeAssets = banner.sizeAssets?.[sizeId] || {};
 ---
 
 <!DOCTYPE html>
@@ -73,9 +82,6 @@ const ContentComponent = contentTemplates[templateName as keyof typeof contentTe
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="ad.size" content={`width=${size.width},height=${size.height}`} />
     <title>{pageTitle}</title>
-    <script is:inline>
-      var clickTag = "https://www.att.com/";
-    </script>
     <style set:html={resetCss}></style>
     <style set:html={baseCss}></style>
     <style set:html={sizeCss}></style>
@@ -88,7 +94,7 @@ const ContentComponent = contentTemplates[templateName as keyof typeof contentTe
       <Logo class="logo" variant={logoVariant} fill="#ffffff" />
       <div class="banner-container">
         <div class="banner-content">
-          <ContentComponent banner={banner} size={size} sizeId={sizeId} />
+          <ContentComponent banner={banner} size={size} sizeId={sizeId} sizeAssets={currentSizeAssets} />
         </div>
       </div>
     </div>
@@ -103,74 +109,17 @@ const ContentComponent = contentTemplates[templateName as keyof typeof contentTe
     <!-- Load animation code -->
     <script is:inline set:html={animationCode}></script>
 
-    <!-- Unified initialization system -->
+    <!-- Load banner initialization system -->
+    <script is:inline set:html={bannerInitCode}></script>
+
+    <!-- Initialize banner with configuration -->
     <script is:inline define:vars={{ bannerElementId, width: size.width, height: size.height }}>
-      (function() {
-        // Track loading state
-        const loadingState = {
-          dom: false,
-          fonts: false
-        };
-
-        // Check if everything is ready
-        function checkReady() {
-          if (loadingState.dom && loadingState.fonts) {
-            console.log('All assets ready, initializing banner');
-            startBanner();
-          }
-        }
-
-        // Start banner animation and setup click handler
-        function startBanner() {
-          // Initialize animation (this will handle image preloading internally)
-          initAnimation({
-            containerId: bannerElementId,
-            width: width,
-            height: height
-          });
-
-          // Setup click handler
-          var banner = document.getElementById(bannerElementId);
-          if (banner) {
-            banner.style.cursor = 'pointer';
-            banner.addEventListener('click', function() {
-              if (clickTag) {
-                window.open(clickTag, '_blank');
-              }
-            });
-          }
-        }
-
-        // Load fonts
-        WebFont.load({
-          google: {
-            families: ['Roboto:300,400,700']
-          },
-          active: function() {
-            console.log('Fonts loaded');
-            loadingState.fonts = true;
-            checkReady();
-          },
-          inactive: function() {
-            console.log('Fonts failed to load, continuing anyway');
-            loadingState.fonts = true;
-            checkReady();
-          }
-        });
-
-        // Wait for DOM
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM ready');
-            loadingState.dom = true;
-            checkReady();
-          });
-        } else {
-          console.log('DOM ready');
-          loadingState.dom = true;
-          checkReady();
-        }
-      })();
+      window.clickTag = "https://www.att.com/";
+      initBanner({
+        containerId: bannerElementId,
+        width: width,
+        height: height
+      });
     </script>
   </body>
 </html>

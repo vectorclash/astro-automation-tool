@@ -1,7 +1,7 @@
 ---
 /**
- * Simple content template for banners
- * Minimal layout with just headline and CTA
+ * Product Showcase content template
+ * Demonstrates using size-specific assets
  */
 interface Props {
   banner: any;
@@ -13,8 +13,17 @@ interface Props {
 const { banner, size, sizeId, sizeAssets = {} } = Astro.props;
 ---
 
+{sizeAssets.background && (
+  <img src={sizeAssets.background} alt="" class="background-image" />
+)}
+
 {sizeAssets.product && (
   <img src={sizeAssets.product} alt="Product" class="product-image" />
 )}
+
+{banner.content.eyebrow && (
+  <p class="eyebrow">{banner.content.eyebrow}</p>
+)}
 <p class="headline">{banner.content.headline}</p>
+<p class="subhead">{banner.content.subhead}</p>
 <button class="cta-button">{banner.content.cta}</button>

@@ -7,9 +7,10 @@ interface Props {
   banner: any;
   size: any;
   sizeId: string;
+  sizeAssets?: any;
 }
 
-const { banner, size, sizeId } = Astro.props;
+const { banner, size, sizeId, sizeAssets = {} } = Astro.props;
 
 // Determine layout based on dimensions rather than specific IDs
 // This is more flexible for multiple sizes with similar layouts

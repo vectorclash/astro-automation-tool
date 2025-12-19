@@ -22,6 +22,9 @@ export interface Banner {
   sizes: BannerSize[];
   content: BannerContent;
   assets?: BannerAssets;
+  sizeAssets?: {
+    [sizeId: string]: BannerAssets; // e.g., "300x250": { product: "...", background: "..." }
+  };
   contentTemplate?: string; // Optional: specify which content component to use (defaults to 'DefaultContent')
 }
 

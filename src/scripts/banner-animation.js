@@ -2,63 +2,8 @@ import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 
 /**
- * Preload all images within a container
- * @param {HTMLElement} container - The container element to search for images
- * @returns {Promise} - Resolves when all images are loaded
- */
-function preloadImages(container) {
-  return new Promise((resolve) => {
-    const images = container.querySelectorAll('img');
-
-    if (images.length === 0) {
-      console.log('No images to preload');
-      resolve();
-      return;
-    }
-
-    console.log(`Preloading ${images.length} image(s)...`);
-    let loadedCount = 0;
-    const totalImages = images.length;
-
-    const imageLoaded = () => {
-      loadedCount++;
-      console.log(`Image ${loadedCount}/${totalImages} loaded`);
-      if (loadedCount === totalImages) {
-        console.log('All images loaded');
-        resolve();
-      }
-    };
-
-    images.forEach(img => {
-      if (img.complete) {
-        imageLoaded();
-      } else {
-        img.addEventListener('load', imageLoaded);
-        img.addEventListener('error', imageLoaded); // Still resolve on error to prevent hanging
-      }
-    });
-  });
-}
-
-/**
- * Wait for fonts to be fully rendered and measured
- * Ensures accurate text measurements for SplitText
- * @returns {Promise} - Resolves after fonts are rendered
- */
-function waitForFontsRendered() {
-  return new Promise((resolve) => {
-    // Give browser time to render fonts after they're loaded
-    // This prevents SplitText measurement issues
-    setTimeout(() => {
-      console.log('Fonts rendered and ready');
-      resolve();
-    }, 50);
-  });
-}
-
-/**
  * Initialize and play banner animation
- * Called only after fonts and images are loaded
+ * Should be called only after all assets (DOM, fonts, images) are loaded
  */
 export async function initAnimation(config) {
   const {
@@ -72,12 +17,6 @@ export async function initAnimation(config) {
     console.error(`Container ${containerId} not found`);
     return;
   }
-
-  // Wait for fonts to be fully rendered before measuring text
-  await waitForFontsRendered();
-
-  // Preload images
-  await preloadImages(container);
 
   gsap.registerPlugin(SplitText);
 
